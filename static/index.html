@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Go</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            padding: 10px;
+            margin: 10px 0;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        
+        .avatar-option {
+            display: flex;
+            align-items: center;
+        }
+        .avatar-option img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .avatar-preview {
+            margin-left: 20px;
+        }
+        .avatar-preview img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Entre com seu Nickname</h1>
+        <input type="text" id="nicknameInput" placeholder="Entre com seu Nickname">
+        <div class="avatar-container">
+            <select id="avatarSelect" onchange="updateAvatarPreview()">
+            <option value="images/avt/avt3.jpg" class="avatar-option"><img src="images/avt/avt3.jpg" alt="Avatar 1"> Avatar 1</option>
+            <option value="images/avt/avt4.jpg" class="avatar-option"><img src="images/avt/avt4.jpg" alt="Avatar 2"> Avatar 2</option>
+            <option value="images/avt/avt5.jpg" class="avatar-option"><img src="images/avt/avt5.jpg" alt="Avatar 3"> Avatar 3</option>
+            <option value="images/avt/avt6.jpg" class="avatar-option"><img src="images/avt/avt6.jpg" alt="Avatar 4"> Avatar 4</option>
+            <option value="images/avt/avt7.jpg" class="avatar-option"><img src="images/avt/avt7.jpg" alt="Avatar 5"> Avatar 5</option>
+            <option value="images/avt/avt8.jpg" class="avatar-option"><img src="images/avt/avt8.jpg" alt="Avatar 6"> Avatar 6</option>
+            </select>
+            <div class="avatar-preview">
+                <img id="avatarPreview" src="avatar1.png" alt="Avatar Preview">
+            </div>
+        </div>
+
+        <button onclick="enterChat()">Enter Chat</button>
+    </div>
+
+    <script>
+        function updateAvatarPreview() {
+            const avatarSelect = document.getElementById('avatarSelect');
+            const avatarPreview = document.getElementById('avatarPreview');
+            avatarPreview.src = avatarSelect.value;
+        }
+
+        function enterChat() {
+            const nickname = document.getElementById('nicknameInput').value;
+            const avatar = document.getElementById('avatarSelect').value;
+            if (nickname && avatar) {
+                localStorage.setItem('nickname', nickname);
+                localStorage.setItem('avatar', avatar);
+                window.location.href = 'chat.html';
+            } else {
+                alert('Entre com seu Nickname e selecione seu avatar');
+            }
+        }
+
+        // Initialize avatar preview
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAvatarPreview();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+    <!-- font -->
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="fonts/font-icons.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet"type="text/css" href="css/styles.css"/>
+
+    <!-- Favicon and Touch Icons  -->
+    <link rel="shortcut icon" href="images/logo/168.png" />
+    <link rel="apple-touch-icon-precomposed" href="images/logo/168.png" />
+
+    <title>Chat Go</title>
+
+    <style>
+        .time-nickname {
+            font-weight: bold;
+        }
+        .typing {
+            font-size: 0.9em;
+            color: #201f1f;
+        }
+        .sent {
+            align-self: flex-end;
+            background-color: #dcf8c6;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .received {
+            align-self: flex-start;
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Chat Go</h1>
+
+    <div class="header-style2 style-2 fixed-top">
+        <div class="left gap-8">
+            <a href="javascript:void(0);" class="icon back-btn"><i class="icon-back"></i></a>
+            <div class="d-flex align-items-center gap-16">
+                <div class="avatar avt-48 avt-status">
+                    <img src="" alt="Avatar" class="avatar" id="avatarDisplay">
+                    <span class="status"></span>
+                </div>
+                <div class="content">
+                    <div class="font-title-btn text-black-2" id="nicknameDisplay"></div>
+                    <p class="mt-4 text-caption-2 text-black-4" id="typingIndicator" style="display: none;">Digitando...</p> 
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mh-full bg-surface">
+        <div class="tf-container py-90">
+            <div class="chat-area py-24">
+                <ul id="messages"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-chat bg-white">
+        <div class="message-box">
+           
+            <input type="text" id="messageInput" placeholder="Digite sua mensagem..." oninput="notifyTyping()">
+            <a href="javascript:void(0);" class="btn-message" id="sendButton" onclick="sendMessage()" disabled>
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_1024_2974)">
+                    <path d="M20.1666 1.83337L13.7499 20.1667L10.0833 11.9167L1.83325 8.25004L20.1666 1.83337Z" fill="#7980FF" stroke="#7980FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                    <defs>
+                    <clipPath id="clip0_1024_2974">
+                    <rect width="22" height="22" fill="white"/>
+                    </clipPath>
+                    </defs>
+                </svg> 
+                 
+            </a>
+        </div>
+             
+    </div>
+
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+    
+    <script>
+        const nickname = localStorage.getItem('nickname');
+        const avatar = localStorage.getItem('avatar');
+        if (!nickname || !avatar) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('nicknameDisplay').textContent = nickname;
+            document.getElementById('avatarDisplay').src = avatar;
+        }
+
+        const ws = new WebSocket("ws://localhost:8000/ws");
+
+        ws.onopen = function() {
+            console.log("Connected to the WebSocket server");
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendButton').disabled = false;
+        };
+
+        ws.onmessage = function(event) {
+            const messages = document.getElementById('messages');
+            const data = JSON.parse(event.data);
+
+            if (data.typing && data.nickname !== nickname) {
+                document.getElementById('typingIndicator').style.display = 'block';
+            } else {
+                document.getElementById('typingIndicator').style.display = 'none';
+
+                if (!data.typing && data.content) {
+                    const messageItem = document.createElement('li');
+                    messageItem.classList.add('message');
+
+                    const bubbleDiv = document.createElement('div');
+                    bubbleDiv.classList.add('bubble');
+
+                    if (data.nickname === nickname) {
+                        bubbleDiv.classList.add('bubble-me', 'box-bubble-me');
+                    } else {
+                        bubbleDiv.classList.add('bubble-you');
+                    }
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.classList.add('content');
+
+                    const timeNicknameSpan = document.createElement('span');
+                    timeNicknameSpan.classList.add('time-nickname');
+                    timeNicknameSpan.textContent = `${data.timestamp} - ${data.nickname}`;
+
+                    const contentP = document.createElement('p');
+                    contentP.textContent = data.content;
+
+                    contentDiv.appendChild(timeNicknameSpan);
+                    contentDiv.appendChild(contentP);
+                    bubbleDiv.appendChild(contentDiv);
+                    messageItem.appendChild(bubbleDiv);
+
+                    messages.appendChild(messageItem);
+                }
+            }
+        };
+
+        ws.onclose = function(event) {
+            console.log("WebSocket closed with code:", event.code);
+        };
+
+        ws.onerror = function(event) {
+            console.log("WebSocket error:", event);
+        };
+
+        function sendMessage() {
+            const content = document.getElementById('messageInput').value;
+            if (ws.readyState === WebSocket.OPEN && content.trim() !== "") {
+                const msg = {
+                    nickname: nickname,
+                    content: content,
+                    typing: false
+                };
+                ws.send(JSON.stringify(msg));
+                document.getElementById('messageInput').value = '';
+            } else {
+                console.log("WebSocket is not open or message is empty. Ready state: " + ws.readyState);
+            }
+        }
+
+        let typingTimeout;
+        function notifyTyping() {
+            if (ws.readyState === WebSocket.OPEN) {
+                const msg = {
+                    nickname: nickname,
+                    typing: true
+                };
+                ws.send(JSON.stringify(msg));
+
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    const stopTypingMsg = {
+                        nickname: nickname,
+                        typing: false
+                    };
+                    ws.send(JSON.stringify(stopTypingMsg));
+                }, 3000);
+            }
+        }
+    </script>
+
+</body>
+</html>
